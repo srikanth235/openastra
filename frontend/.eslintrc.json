@@ -6,32 +6,10 @@
     "prettier",
     "plugin:tailwindcss/recommended"
   ],
-  "plugins": ["import", "tailwindcss", "prettier", "unused-imports"],
+  "plugins": ["tailwindcss"],
   "rules": {
-    "prettier/prettier": "error",
     "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "off",
-    "import/order": [
-      "error",
-      {
-        "groups": ["builtin", "external", "internal", ["parent", "sibling"], "index", "object", "type"],
-        "newlines-between": "always",
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ],
-    "unused-imports/no-unused-vars": [
-      "warn",
-      {
-        "vars": "all",
-        "varsIgnorePattern": "^_",
-        "args": "after-used",
-        "argsIgnorePattern": "^_"
-      }
-    ],
-    "unused-imports/no-unused-imports": "error"
+    "tailwindcss/classnames-order": "off"
   },
   "settings": {
     "import/resolver": {
@@ -40,6 +18,5 @@
       }
     }
   },
-  // Ignore the components and app folders for now until we have a better way to lint them
-  "ignorePatterns": ["**/components/**", "app/**"]
+  "ignorePatterns": ["**/components/ui/**"]
 }

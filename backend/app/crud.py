@@ -71,7 +71,7 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: int) -> Item
 
 
 def create_chat(*, session: Session, chat: Chat) -> Chat:
-    db_chat = Chat.model_validate(chat)
+    db_chat = Chat.model_validate(chat.model_dump())
     session.add(db_chat)
     session.commit()
     session.refresh(db_chat)

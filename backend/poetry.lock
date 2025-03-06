@@ -564,6 +564,18 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linke
 test = ["cssselect", "importlib-resources", "jaraco.test (>=5.1)", "lxml", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [[package]]
+name = "curlconverter"
+version = "1.0.1"
+description = "The library is responsible for parsing a cURL request string and converting it into a Python dictionary containing the method, URL, headers, and data"
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "curlconverter-1.0.1-py3-none-any.whl", hash = "sha256:44df2bab14bf6460352d421155fdf73339564b7972bd32e3d7a38af25db4b6ea"},
+    {file = "curlconverter-1.0.1.tar.gz", hash = "sha256:5fab370db6e6216513338eecc9e211dbc04e48432d201e69b070d265d4b6426e"},
+]
+
+[[package]]
 name = "deprecated"
 version = "1.2.18"
 description = "Python @deprecated decorator to deprecate old python classes, functions or methods."
@@ -4329,4 +4341,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1914b97ef1fb1d6d15a8f7dd995fa05a8742314eeff2ee6cacacc2b2e6f87a51"
+content-hash = "90037e951bbf9c5711833a6d9eaddc831819ff1a7e56b80ae2cacf807c4bd11f"

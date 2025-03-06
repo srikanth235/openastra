@@ -4,9 +4,9 @@ from fastapi import UploadFile
 from sqlmodel import Session, create_engine, select
 
 from app import crud
-from app.api.routes.files import upload_files
 from app.core.config import settings
 from app.models import ProjectCreate, TeamCreate, User, UserCreate
+from app.services.file_service import upload_files_to_project
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -66,13 +66,13 @@ async def init_db(session: Session) -> None:
             )
 
             try:
-                # Upload the collection file
-                response = await upload_files(
-                    project_id=project.id, files=[upload_file]
+                # Upload the collection file using the new service
+                uploaded_files = await upload_files_to_project(
+                    project_id=str(project.id), files=[upload_file]
                 )
 
                 # Update project with file path
-                project.files = response.files
+                project.files = uploaded_files
                 session.add(project)
                 session.commit()
             finally:

@@ -7,10 +7,13 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from .chat import Chat
+    from .document import Document
     from .item import Item
     from .setting import Setting
+    from .suggestion import Suggestion
     from .team import TeamMember
     from .tool_call import ToolCall
+    from .vote import Vote
 
 
 # Shared properties
@@ -82,6 +85,13 @@ class User(UserBase, table=True):
         back_populates="user", cascade_delete=True
     )
     chats: list["Chat"] = Relationship(back_populates="user")
+    votes: list["Vote"] = Relationship(back_populates="user", cascade_delete=True)
+    documents: list["Document"] = Relationship(
+        back_populates="user", cascade_delete=True
+    )
+    suggestions: list["Suggestion"] = Relationship(
+        back_populates="user", cascade_delete=True
+    )
 
 
 # Properties to return via API, id is always required

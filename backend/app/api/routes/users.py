@@ -13,7 +13,6 @@ from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
     Item,
-    Message,
     UpdatePassword,
     User,
     UserCreate,
@@ -23,6 +22,7 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.models.utils import UtilsMessage
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter()
@@ -94,7 +94,7 @@ def update_user_me(
     return current_user
 
 
-@router.patch("/me/password", response_model=Message)
+@router.patch("/me/password", response_model=UtilsMessage)
 def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
@@ -111,7 +111,7 @@ def update_password_me(
     current_user.hashed_password = hashed_password
     session.add(current_user)
     session.commit()
-    return Message(message="Password updated successfully")
+    return UtilsMessage(message="Password updated successfully")
 
 
 @router.get("/me", response_model=UserOut)
@@ -122,7 +122,7 @@ def read_user_me(current_user: CurrentUser) -> Any:
     return current_user
 
 
-@router.delete("/me", response_model=Message)
+@router.delete("/me", response_model=UtilsMessage)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
@@ -135,7 +135,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     session.exec(statement)  # type: ignore
     session.delete(current_user)
     session.commit()
-    return Message(message="User deleted successfully")
+    return UtilsMessage(message="User deleted successfully")
 
 
 @router.post("/signup", response_model=UserOut)
@@ -143,11 +143,11 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
     """
-    # if not settings.USERS_OPEN_REGISTRATION:
-    #     raise HTTPException(
-    #         status_code=403,
-    #         detail="Open user registration is forbidden on this server",
-    #     )
+    if not settings.USERS_OPEN_REGISTRATION:
+        raise HTTPException(
+            status_code=403,
+            detail="Open user registration is forbidden on this server",
+        )
     user = crud.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
@@ -212,7 +212,7 @@ def update_user(
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: str
-) -> Message:
+) -> UtilsMessage:
     """
     Delete a user.
     """
@@ -228,4 +228,4 @@ def delete_user(
     session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
-    return Message(message="User deleted successfully")
+    return UtilsMessage(message="User deleted successfully")

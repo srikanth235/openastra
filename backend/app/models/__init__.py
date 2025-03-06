@@ -1,8 +1,18 @@
 # models/__init__.py
 from sqlmodel import SQLModel
 
-from .chat import Chat, ChatBase, ChatMessage, ChatOut, ChatsOut, ChatUpdate
+from .chat import Chat, ChatBase, ChatOut, ChatsOut, ChatUpdate
+from .document import (
+    Document,
+    DocumentBase,
+    DocumentCreate,
+    DocumentKind,
+    DocumentOut,
+    DocumentsOut,
+    DocumentUpdate,
+)
 from .item import Item, ItemBase, ItemCreate, ItemOut, ItemsOut, ItemUpdate
+from .message import Message, MessageCreate, MessageOut, MessagesOut
 from .project import (
     Project,
     ProjectBase,
@@ -18,6 +28,14 @@ from .setting import (
     SettingOut,
     SettingsOut,
     SettingUpdate,
+)
+from .suggestion import (
+    Suggestion,
+    SuggestionBase,
+    SuggestionCreate,
+    SuggestionOut,
+    SuggestionsOut,
+    SuggestionUpdate,
 )
 from .team import (
     Team,
@@ -53,7 +71,8 @@ from .user import (
     UserUpdate,
     UserUpdateMe,
 )
-from .utils import Message, NewPassword, Token, TokenPayload
+from .utils import NewPassword, Token, TokenPayload, UtilsMessage
+from .vote import Vote, VoteBase, VoteCreate, VoteOut, VotesOut, VoteUpdate
 
 __all__ = [
     "Item",
@@ -93,13 +112,12 @@ __all__ = [
     "ItemUpdate",
     "ItemOut",
     "ItemsOut",
-    "Message",
+    "UtilsMessage",
     "Token",
     "TokenPayload",
     "NewPassword",
     "Chat",
     "ChatBase",
-    "ChatMessage",
     "ChatUpdate",
     "ChatOut",
     "ChatsOut",
@@ -116,4 +134,27 @@ __all__ = [
     "ToolCallsOut",
     "ToolCallUpdate",
     "SQLModel",
+    "Message",
+    "MessageCreate",
+    "MessageOut",
+    "MessagesOut",
+    "Vote",
+    "VoteBase",
+    "VoteCreate",
+    "VoteUpdate",
+    "VoteOut",
+    "VotesOut",
+    "Document",
+    "DocumentBase",
+    "DocumentCreate",
+    "DocumentUpdate",
+    "DocumentKind",
+    "DocumentOut",
+    "DocumentsOut",
+    "Suggestion",
+    "SuggestionBase",
+    "SuggestionCreate",
+    "SuggestionUpdate",
+    "SuggestionOut",
+    "SuggestionsOut",
 ]

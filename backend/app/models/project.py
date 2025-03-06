@@ -50,6 +50,7 @@ class Project(ProjectBase, SQLModel, table=True):
     team_id: str = Field(foreign_key="teams.id", nullable=False)
     team: Team = Relationship(back_populates="projects")
     chats: list["Chat"] = Relationship(back_populates="project")  # noqa: F821
+    documents: list["Document"] = Relationship(back_populates="project")  # noqa: F821
 
 
 class ProjectOut(ProjectBase):

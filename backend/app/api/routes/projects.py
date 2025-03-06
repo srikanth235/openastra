@@ -7,13 +7,13 @@ from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.teams import check_team_permissions
 from app.core.logger import get_logger
 from app.models import (
-    Message,
     Project,
     ProjectOut,
     ProjectsOut,
     Team,
     TeamRole,
 )
+from app.models.utils import UtilsMessage
 
 router = APIRouter()
 
@@ -195,7 +195,7 @@ async def update_project(
     return ProjectOut.model_validate(project.model_dump())
 
 
-@router.delete("/{project_id}", response_model=Message)
+@router.delete("/{project_id}", response_model=UtilsMessage)
 def delete_project(
     *, session: SessionDep, current_user: CurrentUser, project_id: str
 ) -> Any:
@@ -208,4 +208,4 @@ def delete_project(
 
     session.delete(project)
     session.commit()
-    return Message(message="Project deleted successfully")
+    return UtilsMessage(message="Project deleted successfully")

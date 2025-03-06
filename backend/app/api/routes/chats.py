@@ -1,5 +1,6 @@
 from typing import Any
 
+import nanoid
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
@@ -11,6 +12,7 @@ from app.models import (
     ChatUpdate,
     Message,
 )
+from app.models.utils import UtilsMessage
 
 router = APIRouter()
 
@@ -48,7 +50,7 @@ def read_chats(
     chats = session.exec(statement).all()
 
     chat_out_list = [
-        ChatOut(**chat.dict(exclude={"project"}), project=chat.project)
+        ChatOut(**chat.model_dump(exclude={"project"}), project=chat.project)
         for chat in chats
     ]
     return ChatsOut(data=chat_out_list, count=count)
@@ -64,10 +66,10 @@ def read_chat(session: SessionDep, current_user: CurrentUser, id: str) -> ChatOu
         raise HTTPException(status_code=404, detail="Chat not found")
     if not current_user.is_superuser and (chat.user_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    return chat
+    return ChatOut(**chat.model_dump(), project=chat.project)
 
 
-@router.post("/", response_model=Chat)
+@router.post("/", response_model=ChatOut)
 def create_or_update_chat(
     *, session: SessionDep, current_user: CurrentUser, chat: Chat
 ) -> Any:
@@ -86,7 +88,7 @@ def create_or_update_chat(
         session.add(chat)
         session.commit()
         session.refresh(chat)
-        return chat
+        return ChatOut(**chat.model_dump(), project=chat.project)
 
     # Otherwise, update the existing chat
     if not current_user.is_superuser and (existing_chat.user_id != current_user.id):
@@ -96,10 +98,10 @@ def create_or_update_chat(
     session.add(existing_chat)
     session.commit()
     session.refresh(existing_chat)
-    return existing_chat
+    return ChatOut(**existing_chat.model_dump(), project=existing_chat.project)
 
 
-@router.put("/{id}", response_model=Chat)
+@router.put("/{id}", response_model=ChatOut)
 def update_chat(
     *, session: SessionDep, current_user: CurrentUser, id: str, chat_in: ChatUpdate
 ) -> Chat:
@@ -111,15 +113,48 @@ def update_chat(
         raise HTTPException(status_code=404, detail="Chat not found")
     if not current_user.is_superuser and (chat.user_id != str(current_user.id)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
+
     update_dict = chat_in.model_dump(exclude_unset=True)
+
+    # Handle messages separately if they are provided
+    messages = update_dict.pop("messages", None)
+
+    # Update other fields
     chat.sqlmodel_update(update_dict)
+
+    # Update messages if provided
+    if messages is not None:
+        # Delete existing messages
+        for message in chat.messages:
+            session.delete(message)
+
+        # Add new messages
+        if messages:
+            # Convert dictionaries to Message objects
+            message_objects = []
+            for msg in messages:
+                if isinstance(msg, dict):
+                    msg_obj = Message(
+                        id=msg.get("id", nanoid.generate()),
+                        role=msg["role"],
+                        content=msg["content"],
+                        chat_id=chat.id,
+                    )
+                    message_objects.append(msg_obj)
+                else:
+                    # If it's already a Message object, just set the chat_id
+                    msg.chat_id = chat.id
+                    message_objects.append(msg)
+
+            chat.messages = message_objects
+
     session.add(chat)
     session.commit()
     session.refresh(chat)
-    return chat
+    return ChatOut(**chat.model_dump(), project=chat.project)
 
 
-@router.delete("/{id}")
+@router.delete("/{id}", response_model=UtilsMessage)
 def delete_chat(session: SessionDep, current_user: CurrentUser, id: str) -> Any:
     """
     Delete chat.
@@ -131,14 +166,14 @@ def delete_chat(session: SessionDep, current_user: CurrentUser, id: str) -> Any:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     session.delete(chat)
     session.commit()
-    return Message(message="Chat deleted successfully")
+    return UtilsMessage(message="Chat deleted successfully")
 
 
-@router.delete("/")
+@router.delete("/", response_model=UtilsMessage)
 def delete_all_user_chats(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete all chats for a user.
     """
     session.query(Chat).filter(Chat.user_id == str(current_user.id)).delete()
     session.commit()
-    return Message(message="All chats deleted successfully")
+    return UtilsMessage(message="All chats deleted successfully")

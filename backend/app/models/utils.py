@@ -2,7 +2,7 @@ from sqlmodel import SQLModel  # Shared properties
 
 
 # Generic message
-class Message(SQLModel):
+class UtilsMessage(SQLModel):
     message: str
 
 

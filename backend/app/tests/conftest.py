@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Generator
 
 import pytest
@@ -15,7 +16,8 @@ from app.tests.utils.utils import get_superuser_token_headers
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
-        init_db(session)
+        # Run init_db asynchronously
+        asyncio.run(init_db(session))
         yield session
         statement = delete(Item)
         session.execute(statement)

@@ -1,27 +1,18 @@
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ForwardRef
 
 import nanoid
-from sqlalchemy import Column, DateTime, event, func
-from sqlmodel import JSON, Field, Relationship, SQLModel
+from sqlalchemy import DateTime, func
+from sqlmodel import Field, Relationship, SQLModel
 
 from .base import CamelModel
+from .message import Message
 from .project import Project
 from .user import User
 
 if TYPE_CHECKING:
-    from .project import Project
-
-
-class ChatMessage(CamelModel):
-    id: str = Field(default_factory=nanoid.generate)
-    role: str
-    name: str | None = None
-    content: list | str | dict | None = None
-
-    def to_dict(self):
-        return self.dict()
+    from .message import Message
 
 
 class ChatBase(CamelModel):
@@ -35,13 +26,11 @@ class ChatVisibility(str, Enum):
     PUBLIC = "public"
 
 
-# Shared properties
 class Chat(ChatBase, SQLModel, table=True):
     __tablename__ = "chats"
     id: str = Field(primary_key=True, default_factory=nanoid.generate)
     user_id: str = Field(foreign_key="users.id")
     project_id: str | None = Field(default=None, foreign_key="projects.id")
-    messages: list[ChatMessage] | None = Field(sa_column=Column(JSON))
     created_at: datetime | None = Field(
         default=None,
         sa_type=DateTime(timezone=True),
@@ -53,26 +42,47 @@ class Chat(ChatBase, SQLModel, table=True):
         sa_column_kwargs={"onupdate": func.now(), "server_default": func.now()},
     )
     visibility: ChatVisibility = Field(default=ChatVisibility.PRIVATE)
+
+    # Relationships
     user: User = Relationship(back_populates="chats")
     project: Project | None = Relationship(back_populates="chats")
+    messages: list["Message"] = Relationship(back_populates="chat")
 
 
 class ChatUpdate(CamelModel):
-    title: str | None
-    messages: list[ChatMessage] | None
-    project_id: str | None
+    title: str | None = None
+    project_id: str | None = None
     updated_at: datetime = datetime.utcnow()
+    messages: list[ForwardRef("Message")] | None = None
 
 
 class ChatOut(ChatBase):
     id: str
     user_id: str
-    messages: list[ChatMessage] | None
     visibility: ChatVisibility
-    project_id: str | None
+    project_id: str | None = None
     project: Project | None = None
+    messages: list[ForwardRef("Message")] = []
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": "abc123",
+                    "title": "Sample Chat",
+                    "path": "sample-path",
+                    "user_id": "user123",
+                    "visibility": "private",
+                    "project_id": None,
+                    "messages": [],
+                    "created_at": "2023-01-01T00:00:00Z",
+                    "updated_at": "2023-01-01T00:00:00Z",
+                }
+            ]
+        }
+    }
 
 
 class ChatsOut(CamelModel):
@@ -80,19 +90,5 @@ class ChatsOut(CamelModel):
     count: int
 
 
-# Automatically serialize ChatMessage objects before inserting into the database
-def before_insert_listener(mapper, connection, target):  # noqa: ARG001
-    if target.messages:
-        target.messages = [message.dict() for message in target.messages]
-
-
-# Automatically deserialize ChatMessage objects after loading from the database
-def after_load_listener(target, context):  # noqa: ARG001
-    if target.messages:
-        target.messages = [ChatMessage(**message) for message in target.messages]
-
-
-# Bind event listeners
-
-event.listen(Chat, "before_insert", before_insert_listener)
-event.listen(Chat, "load", after_load_listener)
+# Update forward references
+ChatOut.model_rebuild()
